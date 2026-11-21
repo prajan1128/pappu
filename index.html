@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Birthday Pappu 🎂</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#2a0a3d;--bg2:#6d1b5e;--pink:#ff6fa5;--gold:#ffd166}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Baloo 2',system-ui,sans-serif;color:#fff;background:linear-gradient(160deg,var(--bg1),var(--bg2));text-align:center}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:5}
+.balloon{position:fixed;bottom:-120px;width:46px;height:58px;border-radius:50% 50% 48% 48%;opacity:.8;animation:rise linear forwards;z-index:1}
+.balloon::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:40px;background:rgba(255,255,255,.5)}
+@keyframes rise{to{transform:translateY(-120vh) rotate(8deg)}}
+.slide{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 18px 100px;z-index:2;opacity:0;pointer-events:none;transition:opacity .6s}
+.slide.on{opacity:1;pointer-events:auto}
+h1{font-size:clamp(2rem,8vw,3.2rem);margin-bottom:10px}
+p.sub{opacity:.85;margin-bottom:22px}
+h2.big{font-size:clamp(2.2rem,10vw,3.8rem);line-height:1.1;color:var(--gold);text-shadow:0 4px 18px rgba(0,0,0,.4)}
+h3{font-size:1.7rem;margin-bottom:16px;color:var(--gold)}
+button{font:inherit;font-weight:800;border:0;border-radius:999px;padding:13px 30px;font-size:1.1rem;color:#3b0a2e;background:linear-gradient(135deg,var(--gold),var(--pink));cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+button:active{transform:scale(.97)}
+#next{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;display:none}
+#countdown{margin-bottom:16px;font-size:1.2rem;color:var(--gold)}
+.photo{width:200px;height:200px;border-radius:50%;border:6px solid var(--gold);object-fit:cover;box-shadow:0 0 40px rgba(255,209,102,.55);background:linear-gradient(135deg,var(--pink),var(--gold));display:flex;align-items:center;justify-content:center;font-size:5rem;font-weight:800;color:#3b0a2e;margin-bottom:20px}
+.slide.on .photo{animation:pop 1s ease both}
+@keyframes pop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+#chat{width:100%;max-width:460px;display:flex;flex-direction:column;gap:10px;text-align:left}
+.msg{background:rgba(255,255,255,.14);padding:10px 15px;border-radius:18px 18px 18px 4px;max-width:90%;line-height:1.4;animation:slide .5s ease both}
+.msg:nth-child(even){align-self:flex-end;border-radius:18px 18px 4px 18px;background:rgba(255,111,165,.28)}
+@keyframes slide{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:420px}
+.card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:16px 10px;opacity:0;transform:translateY(20px);transition:.6s}
+.card.show{opacity:1;transform:none}
+.card b{display:block;font-size:2rem;margin-bottom:4px}
+#closeText{font-size:1.25rem;max-width:460px;line-height:1.6;margin-bottom:12px}
+.sign{color:var(--gold);font-size:1.4rem;margin-bottom:22px}
+#music{position:fixed;top:14px;right:14px;z-index:10;padding:9px 14px;font-size:1rem;display:none}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<button id="music" aria-label="Music on or off">🔊</button>
+<button id="next">Next ➜</button>
+
+<div class="slide on" id="s0">
+  <div id="countdown"></div>
+  <h1>🎁 A surprise for <span id="nameA"></span></h1>
+  <p class="sub">Made only for you ❤️</p>
+  <button id="openBtn">Open your surprise</button>
+</div>
+
+<div class="slide" id="s1">
+  <div id="photoBox"></div>
+  <h2 class="big" id="title"></h2>
+</div>
+
+<div class="slide" id="s2">
+  <h3>💌 My wishes for you</h3>
+  <div id="chat"></div>
+</div>
+
+<div class="slide" id="s3">
+  <h3>⭐ Why you are my favourite</h3>
+  <div class="cards" id="cards"></div>
+</div>
+
+<div class="slide" id="s4">
+  <h3>🎂</h3>
+  <p id="closeText"></p>
+  <div class="sign" id="sign"></div>
+  <button id="again">See you 👋</button>
+</div>
+
+<script>
+/* ============ EDIT ONLY THIS PART ============ */
+const CONFIG = {
+  name: "Pappu",
+  from: "",                 // who is sending this
+  birthday: "2007-11-22",                      // optional, like "2027-03-15" to show a countdown
+  photo: "img/pappu.jpg",            // put her photo here
+  song: "music/song.mp3",            // put the Tamil song here
+  messages: [
+    "Hey Pappu, today is all about you! 🎉",
+    "You are my favourite person in the whole world ❤️",
+    "Your smile makes every day beautiful.",
+    "Thank you for being you. Never change!",
+    "I hope this year brings you every happiness ✨"
+  ],
+  reasons: [
+    { icon: "😊", text: "Your smile lights up everything" },
+    { icon: "🤗", text: "You make every day special" },
+    { icon: "💖", text: "Your kind heart" },
+    { icon: "🌟", text: "You are simply the best" }
+  ],
+  closing: "May all your dreams come true, Pappu. I am always here for you. Happy Birthday! 🎂💐",
+  colors: ["#ff6fa5", "#ffd166", "#7bdff2", "#b794f6", "#80ed99", "#ff9f68"]
+};
+/* ============================================= */
+
+const $ = id => document.getElementById(id);
+const audio = new Audio(CONFIG.song);
+audio.loop = true;
+let songOK = true;
+audio.addEventListener('error', () => { songOK = false; $('music').style.display = 'none'; });
+
+document.title = 'Happy Birthday ' + CONFIG.name + ' 🎂';
+$('nameA').textContent = CONFIG.name;
+$('title').innerHTML = 'Happy Birthday<br>' + CONFIG.name + '! 🎈';
+$('closeText').textContent = CONFIG.closing;
+$('sign').textContent = '— ' + CONFIG.from + ' ❤️';
+
+const img = new Image();
+img.className = 'photo'; img.alt = CONFIG.name;
+img.onerror = () => { const d = document.createElement('div'); d.className = 'photo'; d.textContent = CONFIG.name[0]; img.replaceWith(d); };
+img.src = CONFIG.photo;
+$('photoBox').appendChild(img);
+
+if (CONFIG.birthday) {
+  const left = Math.ceil((new Date(CONFIG.birthday + 'T00:00:00') - new Date()) / 864e5);
+  if (left > 0) $('countdown').textContent = '⏳ ' + left + ' day' + (left > 1 ? 's' : '') + ' to go…';
+}
+
+CONFIG.reasons.forEach(r => {
+  const c = document.createElement('div');
+  c.className = 'card';
+  c.innerHTML = '<b>' + r.icon + '</b>' + r.text;
+  $('cards').appendChild(c);
+});
+
+function balloon() {
+  const b = document.createElement('div');
+  b.className = 'balloon';
+  b.style.left = Math.random() * 95 + 'vw';
+  b.style.background = CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)];
+  b.style.animationDuration = 7 + Math.random() * 6 + 's';
+  document.body.appendChild(b);
+  setTimeout(() => b.remove(), 14000);
+}
+
+const cv = $('confetti'), cx = cv.getContext('2d');
+let bits = [], running = false;
+function size() { cv.width = innerWidth; cv.height = innerHeight; }
+addEventListener('resize', size); size();
+function burst(n = 140) {
+  for (let i = 0; i < n; i++) bits.push({
+    x: innerWidth / 2, y: innerHeight / 3,
+    vx: (Math.random() - .5) * 16, vy: Math.random() * -14 - 2,
+    s: 5 + Math.random() * 7, r: Math.random() * 6,
+    c: CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)], l: 160
+  });
+  if (!running) { running = true; tick(); }
+}
+function tick() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  bits = bits.filter(p => p.l > 0);
+  bits.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += .35; p.vx *= .99; p.r += .2; p.l--;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r);
+    cx.globalAlpha = Math.min(1, p.l / 40);
+    cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); cx.restore();
+  });
+  if (bits.length) requestAnimationFrame(tick); else running = false;
+}
+
+/* one screen at a time, no scrolling */
+let cur = 0, timers = [];
+function go(n) {
+  timers.forEach(clearTimeout); timers = [];
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('on', i === n));
+  cur = n;
+  $('next').style.display = (n >= 1 && n < 4) ? 'block' : 'none';
+  if (n === 1) burst(120);
+  if (n === 2) {
+    $('chat').innerHTML = '';
+    CONFIG.messages.forEach((m, i) => timers.push(setTimeout(() => {
+      const d = document.createElement('div');
+      d.className = 'msg'; d.textContent = m;
+      $('chat').appendChild(d);
+      if (i % 2 === 0) burst(35);
+    }, 400 + i * 1500)));
+  }
+  if (n === 3) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('show'));
+    document.querySelectorAll('.card').forEach((c, i) => timers.push(setTimeout(() => c.classList.add('show'), 300 + i * 350)));
+  }
+  if (n === 4) burst(220);
+}
+
+$('openBtn').onclick = () => {
+  if (songOK) { audio.play().catch(() => {}); $('music').style.display = 'block'; }
+  for (let i = 0; i < 8; i++) setTimeout(balloon, i * 300);
+  setInterval(balloon, 1600);
+  go(1);
+};
+$('next').onclick = () => go(cur + 1);
+$('again').onclick = () => {
+  audio.pause();
+  window.close();                                   /* works when the browser allows it */
+  setTimeout(() => location.replace('about:blank'), 300);  /* otherwise leave to a blank page */
+};
+$('music').onclick = () => {
+  if (audio.paused) { audio.play(); $('music').textContent = '🔊'; }
+  else { audio.pause(); $('music').textContent = '🔇'; }
+};
+</script>
+</body>
+</html>
